@@ -267,3 +267,10 @@ func TestRequestFromJsonFile(t *testing.T) {
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
+
+## ToDo
+- [ ] 异步请求
+- [ ] 并发请求
+- [ ] SSL验证/关闭验证
+- [ ] Runner实现
+- [ ] 性能测试及指标计算
