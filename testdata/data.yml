@@ -1,0 +1,31 @@
+config:
+  name: 测试用例名称
+  request:
+    base_url: https://httpbin.org
+    headers:
+      token: abc123
+  variables:
+    a: 100
+    b: 200
+
+tests:
+  - name: 步骤1-GET请求
+    request:
+      url: https://httpbin.org/get
+      method: GET
+    extract:
+      - u: content.url
+    validate:
+      - eq: [status_code, 200]
+      - comparator: eq
+        check: content.url
+        expect: https://httpbin.org/get
+
+   - name: 步骤2-POST请求
+    request:
+      url: https://httpbin.org/post
+      method: POST
+      data:
+        a: $a
+        b: 2
+        c: $c

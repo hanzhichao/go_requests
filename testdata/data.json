@@ -1,0 +1,5 @@
+{
+  "method": "post",
+  "url": "https://httpbin.org/post",
+  "data": {"name": "Kevin", "age":  "12"}
+}
