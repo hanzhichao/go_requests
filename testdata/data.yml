@@ -1,31 +1,33 @@
+name: 测试套件1
+
 config:
-  name: 测试用例名称
-  request:
-    base_url: https://httpbin.org
-    headers:
-      token: abc123
-  variables:
-    a: 100
-    b: 200
+  base_url: https://httpbin.org
+  headers:
+    token: abc123
 
-tests:
-  - name: 步骤1-GET请求
-    request:
-      url: https://httpbin.org/get
-      method: GET
-    extract:
-      - u: content.url
-    validate:
-      - eq: [status_code, 200]
-      - comparator: eq
-        check: content.url
-        expect: https://httpbin.org/get
+variables:
+  a: 100
+  b: 200
 
-   - name: 步骤2-POST请求
-    request:
-      url: https://httpbin.org/post
-      method: POST
-      data:
-        a: $a
-        b: 2
-        c: $c
+testcases:
+  - name: 测试用例1
+    priority: P0
+    tags: [demo]
+    steps:
+      - name: 步骤1-GET请求
+        request:
+          url: https://httpbin.org/get
+          method: GET
+        register:
+          u: content.url
+        varify:
+          - eq: [ status_code, 200 ]
+
+      - name: 步骤2-POST请求
+        request:
+          url: https://httpbin.org/post
+          method: POST
+          data:
+            a: $a
+            b: 2
+            c: $c
