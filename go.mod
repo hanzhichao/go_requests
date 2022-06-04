@@ -1,3 +1,3 @@
-module http_demo
+module requests
 
 go 1.17

@@ -12,6 +12,12 @@ Golang版人性化HTTP请求库，灵感来自Python版requests库
 - 响应支持状态码、原因、响应二进制内容、响应文本、响应头、Cookies、请求耗时及JSON转map
 - 支持从JSON及JSON文件中读取请求配置并发送
 
+
+## 安装方法
+```shell
+$ go get -u "github.com/hanzhichao/reqeusts"
+```
+
 ## 结构模型
 ### 请求
 ```go
@@ -61,11 +67,6 @@ type Config struct {
 }
 ```
 
-
-## 安装方法
-```shell
-$ go get -u "github.com/hanzhichao/reqeusts"
-```
 
 ## 使用示例
 > 需要`import "github.com/hanzhichao/reqeusts"`
