@@ -156,3 +156,29 @@ func TestRequestFromJsonFile(t *testing.T) {
 	fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
 	fmt.Printf("响应文本: %s\n", resp.Text)
 }
+
+// 默认请求方法
+func TestRequestWithDefaultMethod(t *testing.T) {
+	r := Request{Url: "https://httpbin.org/get"}
+	resp := r.Send()
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+
+	r = Request{Url: "https://httpbin.org/post", Data: map[string]string{"name": "Kevin"}}
+	resp = r.Send()
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+}
+
+// 使用HTTP2及关闭TLS验证
+func TestRequestWithHttp2(t *testing.T){  // todo 换其他方式验证
+	r := Request{Url: "https://stackoverflow.com", HTTP2: true, NoVerify: true}
+	resp := r.Send()
+	fmt.Printf("响应头: %v\n", resp.Headers)
+}
+
+// 测试使用HTTP代理
+func TestRequestWithProxy(t *testing.T){  // todo 换其他方式验证
+	r := Request{Url: "https://httpbin.org/get", Proxy: "http://localhost:8888", NoVerify: true}
+	resp := r.Send()
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+}
+

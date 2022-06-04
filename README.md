@@ -2,9 +2,11 @@
 Golang版人性化HTTP请求库，灵感来自Python版requests库
 
 ## 特性
-- 支持GET、POST等各种请求方法
+- 支持GET、POST等各种请求方法，支持默认请求方法
 - 支持独立Query参数、自定义Headers及自定义Cookies
 - 支持JSON、表单、`mutipart/form-data`及Raw格式数据
+- 支持HTTP2.0及跳过TLS服务端证书验证
+- 支持HTTP请求代理
 - 支持请求Timeout
 - 支持NoRedirects禁止重定向
 - 支持BasicAuth基础授权
@@ -33,8 +35,11 @@ type Request struct {
     Files       map[string]string `json:"files"`           // mutipart/form-data需要上传的文体 Files
     Raw         string            `json:"raw"`             // 原始请求数据
     Auth        []string          `json:"auth"`            // BaseAuth授权用户名及密码
+    Proxy       string            `json:"proxy"`           // 代理地址 例如  "http://127.0.0.1:8888"
     Timeout     int               `json:"timeout"`         // 超时时间，单位 毫秒
-    NoRedirects bool              `json:"allow_redirects"` // 禁止重定向, 默认允许
+    NoRedirects bool              `json:"allow_redirects"` // 关闭重定向, 默认开启
+    NoVerify    bool              `json:"no_verify"`       // 跳过TLS证书验证，默认不跳过
+    HTTP2       bool              `json:"http_2"`          // 是否启用HTTP2，默认不启用，受GlobalConfig影响
 }
 ```
 
@@ -64,12 +69,33 @@ type Config struct {
     Cookies map[string]string `json:"cookies"`  // 默认请求头
     Auth    []string          `json:"auth"`     // 默认BasicAuth授权用户名及密码
     Timeout int               `json:"timeout"`  // 默认超时时间，单位 毫秒
+    HTTP2   bool              `json:"http_2"`   // 是否默认启用HTTP2，默认不启用
+    Proxy   string            `json:"proxy"`    // 默认代理地址 例如  "http://127.0.0.1:8888"
+    // todo 暴露跟多 http.Transport 所需配置
 }
 ```
 
 
 ## 使用示例
 > 需要`import "github.com/hanzhichao/reqeusts"`
+
+### 默认请求方法
+> Method可以省略，有数据时默认请求方法为POST，否则默认请方法为GET
+
+```go
+// 默认请求方法
+func TestRequestWithDefaultMethod(t *testing.T) {
+    // 发送GET请求
+    r := requests.Request{Url: "https://httpbin.org/get"}
+    resp := r.Send()
+    fmt.Printf("状态码: %d\n", resp.StatusCode)
+
+    // 发送POST请求
+    r = requests.Request{Url: "https://httpbin.org/post", Data: map[string]string{"name": "Kevin"}}
+    resp = r.Send()
+    fmt.Printf("状态码: %d\n", resp.StatusCode)
+}
+```
 
 ### 发送GET请求
 ```go
@@ -162,7 +188,7 @@ func TestPostMultipartFormData(t *testing.T) {
         Method:  "POST",
         Url:     "https://httpbin.org/post",
         Data:    map[string]string{"name": "张三", "age": "12"},
-        Files:   map[string]string{"pic": "chainmaker.png"},
+        Files:   map[string]string{"pic": "../testdata/logo.png"},
     }
     
     resp := r.Send()
@@ -268,9 +294,37 @@ func TestRequestFromJsonFile(t *testing.T) {
 }
 ```
 
+### 发送HTTP2请求
+```go
+// 使用HTTP2及关闭TLS验证
+func TestRequestWithHttp2(t *testing.T){  // todo 换其他方式验证
+    r := requests.Request{Url: "https://stackoverflow.com", HTTP2: true, NoVerify: true}
+    resp := r.Send()
+    fmt.Printf("响应头: %v\n", resp.Headers)
+}
+```
+> 可以通过调试在原始http.Resposne对象res.Proto属性中查看到请求协议为HTTP/2.0
+
+### 使用HTTP代理
+```go
+func TestRequestWithProxy(t *testing.T){  // todo 换其他方式验证
+    r := requests.Request{Url: "https://httpbin.org/get", Proxy: "http://localhost:8888", NoVerify: true}
+    resp := r.Send()
+    fmt.Printf("状态码: %d\n", resp.StatusCode)
+}
+```
+
+
 ## ToDo
+- [ ] 异常处理
 - [ ] 异步请求
 - [ ] 并发请求
 - [ ] SSL验证/关闭验证
 - [ ] Runner实现
 - [ ] 性能测试及指标计算
+- [ ] HTTP3
+- [ ] 支持WebSocket
+
+## 参考
+- <https://pkg.go.dev/golang.org/x/net/http2#ConfigureTransport>
+- <https://httpwg.org/specs/rfc7540.html>

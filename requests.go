@@ -2,8 +2,10 @@ package requests
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/http2"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -23,6 +25,9 @@ type Config struct {
 	Cookies map[string]string `json:"cookies"`  // 默认请求头
 	Auth    []string          `json:"auth"`     // 默认BasicAuth授权用户名及密码
 	Timeout int               `json:"timeout"`  // 默认超时时间，单位 毫秒
+	HTTP2   bool              `json:"http_2"`   // 是否默认启用HTTP2，默认不启用
+	Proxy   string            `json:"proxy"`    // 默认代理地址 例如  "http://127.0.0.1:8888"
+	// todo 暴露跟多 http.Transport 所需配置/**/
 }
 
 var GlobalConfig = &Config{} // 全局配置
@@ -39,8 +44,11 @@ type Request struct {
 	Files       map[string]string `json:"files"`           // mutipart/form-data需要上传的文体 Files
 	Raw         string            `json:"raw"`             // 原始请求数据
 	Auth        []string          `json:"auth"`            // BaseAuth授权用户名及密码
+	Proxy       string            `json:"proxy"`           // 代理地址 例如  "http://127.0.0.1:8888"
 	Timeout     int               `json:"timeout"`         // 超时时间，单位 毫秒
-	NoRedirects bool              `json:"allow_redirects"` // 禁止重定向, 默认允许
+	NoRedirects bool              `json:"allow_redirects"` // 关闭重定向, 默认开启
+	NoVerify    bool              `json:"no_verify"`       // 跳过TLS证书验证，默认不跳过
+	HTTP2       bool              `json:"http_2"`          // 是否启用HTTP2，默认不启用，受GlobalConfig影响
 }
 
 // 响应结构体
@@ -103,18 +111,33 @@ func (r *Request) handleConfig() {
 		}
 		r.Cookies = GlobalConfig.Cookies
 	}
-	// 处理Timeout
+	// 处理默认Timeout
 	if GlobalConfig.Timeout > 0 && r.Timeout == 0 {
 		r.Timeout = GlobalConfig.Timeout
 	}
-
+	// 处理默认BasicAuth
 	if GlobalConfig.Auth != nil && len(GlobalConfig.Auth) == 2 {
 		r.Auth = GlobalConfig.Auth
+	}
+	// 处理默认是否开启HTTP2
+	if GlobalConfig.HTTP2 == true {
+		r.HTTP2 = true
+	}
+	// 处理默认Proxy配置
+	if GlobalConfig.Proxy != "" {
+		r.Proxy = GlobalConfig.Proxy
 	}
 }
 
 // 处理请求方法
 func (r *Request) getMethod() string {
+	if r.Method == "" {
+		if r.Raw == "" && r.Json == "" && (r.Data == nil || len(r.Data) == 0) && (r.Files == nil || len(r.Files) == 0) {
+			r.Method = "GET" // 无任何数据是默认请求方法GET
+		} else {
+			r.Method = "POST" // 有数据是默认请求方法是POST
+		}
+	}
 	return strings.ToUpper(r.Method) // 必须转为全部大写
 }
 
@@ -243,7 +266,7 @@ func (r *Request) Prepare() *http.Request {
 }
 
 // 组装响应对象
-func (r *Request) packResponse(res *http.Response, elapsed float64) Response {
+func (r *Request) buildResponse(res *http.Response, elapsed float64) Response {
 	var resp Response
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -265,10 +288,29 @@ func (r *Request) packResponse(res *http.Response, elapsed float64) Response {
 	return resp
 }
 
-// 发送请求
-func (r *Request) Send() Response {
-	client := &http.Client{}
-	req := r.Prepare()
+func (r *Request) getClient() *http.Client{
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: r.NoVerify}, // 是否跳过验服务端证书
+	}
+	// 处理Proxy
+	if r.Proxy != ""{
+		proxy, err := url.Parse(r.Proxy)
+		if err != nil{
+			fmt.Printf("解析代理地址 \"%s\" 出错: %s\n", r.Proxy, err)
+		}
+		transport.Proxy = http.ProxyURL(proxy)
+	}
+
+	// 处理是否HTTP2
+	if r.HTTP2 == true {
+		err := http2.ConfigureTransport(transport)
+		if err != nil {
+			fmt.Printf("HTTP2传输配置出错: %s\n", err)
+		}
+		//transport.AllowHTTP = true
+	}
+
+	client := &http.Client{Transport: transport}
 	if r.Timeout > 0 {
 		client.Timeout = time.Duration(r.Timeout) * time.Millisecond
 	}
@@ -277,6 +319,13 @@ func (r *Request) Send() Response {
 			return http.ErrUseLastResponse
 		}
 	}
+	return client
+}
+
+// 发送请求
+func (r *Request) Send() Response {
+	req := r.Prepare()
+	client := r.getClient()
 	start := time.Now()
 	res, err := client.Do(req)
 	if err != nil {
@@ -284,7 +333,7 @@ func (r *Request) Send() Response {
 	}
 	defer res.Body.Close()
 	elapsed := time.Since(start).Seconds()
-	return r.packResponse(res, elapsed)
+	return r.buildResponse(res, elapsed)
 }
 
 // 从JSON字符串得到Request结构体
