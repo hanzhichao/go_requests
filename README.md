@@ -325,6 +325,12 @@ func TestRequestWithProxy(t *testing.T){  // todo 换其他方式验证
 - [ ] HTTP3
 - [ ] 支持WebSocket
 
+## 已知问题
+- [ ] 不支持流式发送单文件binary数据
+- [ ] 无法自定义Transport配置，无法添加个人TLS证书及密钥
+- [ ] 无法获取响应HTTP版本
+- [ ] 不支持国密TLS
+
 ## 参考
 - <https://pkg.go.dev/golang.org/x/net/http2#ConfigureTransport>
 - <https://httpwg.org/specs/rfc7540.html>
