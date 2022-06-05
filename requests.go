@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,6 +32,8 @@ type Config struct {
 }
 
 var GlobalConfig = &Config{} // 全局配置
+var Wait sync.WaitGroup
+var Ch chan Response = make(chan Response, 10)
 
 // 请求结构体
 type Request struct {
@@ -250,7 +253,7 @@ func (r *Request) setAuth(req *http.Request) {
 }
 
 // 准备请求
-func (r *Request) Prepare() *http.Request {
+func (r *Request) prepare() *http.Request {
 	r.handleConfig()
 	Method := r.getMethod()
 	Url := r.getUrl()
@@ -324,7 +327,7 @@ func (r *Request) getClient() *http.Client{
 
 // 发送请求
 func (r *Request) Send() Response {
-	req := r.Prepare()
+	req := r.prepare()
 	client := r.getClient()
 	start := time.Now()
 	res, err := client.Do(req)
@@ -333,7 +336,17 @@ func (r *Request) Send() Response {
 	}
 	defer res.Body.Close()
 	elapsed := time.Since(start).Seconds()
-	return r.buildResponse(res, elapsed)
+	Wait.Add(1)
+	resp := r.buildResponse(res, elapsed)
+	Ch <- resp
+	Wait.Done()
+	return resp
+}
+
+// 发送异步请求
+func (r *Request) AsyncSend() {
+	go r.Send()
+	Wait.Wait()
 }
 
 // 从JSON字符串得到Request结构体
@@ -354,7 +367,7 @@ func GetRequestFromJson(jsonData []byte) Request {
 func GetRequestFromJsonFile(jsonFilePath string) Request {
 	jsonData, err := ioutil.ReadFile(jsonFilePath)
 	if err != nil {
-		fmt.Printf("读取JSON文件出错")
+		fmt.Printf("读取JSON文件出错: %s\n", err)
 	}
 	return GetRequestFromJson(jsonData)
 }

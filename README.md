@@ -13,6 +13,7 @@ Golang版人性化HTTP请求库，灵感来自Python版requests库
 - 支持GlobalConfig配置默认BasicUrl、默认Params、Headers、Cookies及Auth
 - 响应支持状态码、原因、响应二进制内容、响应文本、响应头、Cookies、请求耗时及JSON转map
 - 支持从JSON及JSON文件中读取请求配置并发送
+- 支持异步请求及并发
 
 
 ## 安装方法
@@ -188,7 +189,7 @@ func TestPostMultipartFormData(t *testing.T) {
         Method:  "POST",
         Url:     "https://httpbin.org/post",
         Data:    map[string]string{"name": "张三", "age": "12"},
-        Files:   map[string]string{"pic": "../testdata/logo.png"},
+        Files:   map[string]string{"pic": "./testdata/logo.png"},
     }
     
     resp := r.Send()
@@ -285,7 +286,7 @@ func TestRequestConfig(t *testing.T){
 
 ```go
 func TestRequestFromJsonFile(t *testing.T) {
-    r := requets.GetRequestFromJsonFile("../testdata/data.json")
+    r := requets.GetRequestFromJsonFile("./testdata/data.json")
     resp := r.Send()
     fmt.Printf("状态码: %d\n", resp.StatusCode)
     fmt.Printf("原因: %s\n", resp.Reason)
@@ -313,17 +314,29 @@ func TestRequestWithProxy(t *testing.T){  // todo 换其他方式验证
     fmt.Printf("状态码: %d\n", resp.StatusCode)
 }
 ```
-
+### 使用异步请求
+```go
+// 异步发送请求
+func TestAsyncSendRequest(t *testing.T) {
+	r := requests.Request{Url: "https://www.baidu.com"}
+	for i := 0; i < 10; i++ {
+		r.AsyncSend()
+		resp := <- requests.Ch
+		fmt.Println(resp.StatusCode)
+	}
+}
+```
 
 ## ToDo
 - [ ] 异常处理
-- [ ] 异步请求
-- [ ] 并发请求
+- [x] 异步请求
+- [x] 并发请求
 - [ ] SSL验证/关闭验证
 - [ ] Runner实现
 - [ ] 性能测试及指标计算
 - [ ] HTTP3
 - [ ] 支持WebSocket
+- [ ] 异步请求并发配置
 
 ## 已知问题
 - [ ] 不支持流式发送单文件binary数据
