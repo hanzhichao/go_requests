@@ -1,4 +1,4 @@
-module github.com/hanzhichao/reqeusts
+module github.com/hanzhichao/go-requests
 
 go 1.17
 
