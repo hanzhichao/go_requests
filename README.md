@@ -18,7 +18,7 @@ Golang版人性化HTTP请求库，灵感来自Python版requests库
 
 ## 安装方法
 ```shell
-$ go get -u "github.com/hanzhichao/reqeusts"
+$ go get -u "github.com/hanzhichao/go-requests"
 ```
 
 ## 结构模型
