@@ -78,7 +78,7 @@ type Config struct {
 
 
 ## 使用示例
-> 需要`import "github.com/hanzhichao/reqeusts"`
+> 需要`import "github.com/hanzhichao/go-requests"`
 
 ### 默认请求方法
 > Method可以省略，有数据时默认请求方法为POST，否则默认请方法为GET
