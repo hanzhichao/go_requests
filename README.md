@@ -18,7 +18,7 @@ Golang版人性化HTTP请求库，灵感来自Python版requests库
 
 ## 安装方法
 ```shell
-$ go get -u "github.com/hanzhichao/go-requests"
+$ go get -u "github.com/hanzhichao/requests"
 ```
 
 ## 结构模型
@@ -78,7 +78,7 @@ type Config struct {
 
 
 ## 使用示例
-> 需要`import "github.com/hanzhichao/go-requests"`
+> 需要`import "github.com/hanzhichao/requests"`
 
 ### 默认请求方法
 > Method可以省略，有数据时默认请求方法为POST，否则默认请方法为GET

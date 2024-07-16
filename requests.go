@@ -66,8 +66,17 @@ type Response struct {
 	Request    *Request          `json:"request"`     // 原始请求
 }
 
-func (rs *Response) json() map[string]interface{} {
+func (rs *Response) Json() map[string]interface{} {
 	data := make(map[string]interface{})
+	err := json.Unmarshal(rs.Content, &data)
+	if err != nil {
+		fmt.Println("响应文本转map失败")
+	}
+	return data
+}
+
+func (rs *Response) JsonArray() []map[string]interface{} {
+	var data []map[string]interface{}
 	err := json.Unmarshal(rs.Content, &data)
 	if err != nil {
 		fmt.Println("响应文本转map失败")
@@ -291,14 +300,14 @@ func (r *Request) buildResponse(res *http.Response, elapsed float64) Response {
 	return resp
 }
 
-func (r *Request) getClient() *http.Client{
+func (r *Request) getClient() *http.Client {
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: r.NoVerify}, // 是否跳过验服务端证书
 	}
 	// 处理Proxy
-	if r.Proxy != ""{
+	if r.Proxy != "" {
 		proxy, err := url.Parse(r.Proxy)
-		if err != nil{
+		if err != nil {
 			fmt.Printf("解析代理地址 \"%s\" 出错: %s\n", r.Proxy, err)
 		}
 		transport.Proxy = http.ProxyURL(proxy)
