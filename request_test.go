@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -129,20 +128,6 @@ func TestRequestTimeout(t *testing.T) {
 }
 
 // 测试请求默认配置
-func TestRequestConfig(t *testing.T) {
-	GlobalConfig.BaseUrl = "https://httpbin.org"
-	GlobalConfig.Params = map[string]string{"Token": "abc"}
-	GlobalConfig.Headers = map[string]string{"Test": "123"}
-	GlobalConfig.Cookies = map[string]string{"sid": "hhh"}
-	GlobalConfig.Timeout = 10000 // 10秒
-
-	r := Request{
-		Method: "get",
-		Url:    "/get",
-	}
-	resp := r.Send()
-	fmt.Printf("响应文本：%s\n", resp.Text)
-}
 
 // 读取JSON文件发送请求
 func TestRequestFromJsonFile(t *testing.T) {
@@ -189,51 +174,42 @@ func TestAsyncSendRequest(t *testing.T) {
 	}
 }
 
-func TestParseJsonResponse(t *testing.T) {
-	r := Request{
-		Method: "get",
-		Url:    "https://httpbin.org/get?name=张三&age=12"}
+func TestBuildRequest(t *testing.T) {
+	r := NewRequest().
+		SetMethod("get").
+		SetUrl("https://httpbin.org/get").
+		SetParams(map[string]string{"name": "张三", "age": "12"}).
+		SetTimeout(3000)
 	resp := r.Send()
-	respJson := resp.Json()
-	//fmt.Println(resp.Text)
-	args := respJson["args"].(map[string]interface{})
-	name := args["name"].(string)
-	age := args["age"].(string)
-	fmt.Println(name, age)
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+	fmt.Printf("原因: %s\n", resp.Reason)
+	fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 
-func TestParseJsonResponseToStruct(t *testing.T) {
-	type Args struct {
-		Name string `json:"name"`
-		Age  string `json:"age"`
-	}
-
-	type Headers struct {
-		Accept_Encoding string `json:"Accept-Encoding"`
-		Host            string `json:"Host"`
-		User_Agent      string `json:"User-Agent"`
-		X_Amzn_Trace_Id string `json:"X-Amzn-Trace-Id"`
-	}
-
-	type MyResponse struct {
-		Args    Args    `json:"args"`
-		Headers Headers `json:"headers"`
-		Origin  string  `json:"origin"`
-		Url     string  `json:"url"`
-	}
-
+func TestLoginAndLogout(t *testing.T) {
 	r := Request{
-		Method: "get",
-		Url:    "https://httpbin.org/get?name=张三&age=12"}
+		Method: "POST",
+		Url:    "http://127.0.0.1:5000/api/user/login/",
+		Data:   map[string]string{"name": "张三", "password": "123456"}}
 	resp := r.Send()
-	fmt.Println(resp.Text)
-	//
-	var respObj MyResponse
-	err := json.Unmarshal(resp.Content, &respObj)
-	if err != nil {
-		fmt.Println("JSON反序列化失败")
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+	fmt.Printf("原因: %s\n", resp.Reason)
+	fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+	fmt.Printf("响应文本: %s\n", resp.Text)
+	fmt.Printf("响应Cookies: %s\n", resp.Cookies)
+
+	r2 := Request{
+		Method:  "GET",
+		Url:     "http://127.0.0.1:5000/api/user/logout/",
+		Params:  map[string]string{"name": "张三"},
+		Cookies: resp.Cookies,
 	}
-	name := respObj.Args.Name
-	age := respObj.Args.Age
-	fmt.Println(name, age)
+	resp2 := r2.Send()
+
+	fmt.Printf("状态码: %d\n", resp2.StatusCode)
+	fmt.Printf("原因: %s\n", resp2.Reason)
+	fmt.Printf("响应时间: %f秒\n", resp2.Elapsed)
+	fmt.Printf("响应文本: %s\n", resp2.Text)
+
 }
