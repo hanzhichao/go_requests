@@ -54,3 +54,10 @@ func TestParseJsonResponseToStruct(t *testing.T) {
 	age := respObj.Args.Age
 	fmt.Println(name, age)
 }
+
+func TestResponseGet(t *testing.T) {
+	resp := Get("https://httpbin.org/get?name=张三&age=12")
+	name := resp.Get("args.name")
+	age := resp.Get("args.age")
+	fmt.Println(name, age)
+}

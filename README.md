@@ -101,11 +101,7 @@ func TestRequestWithDefaultMethod(t *testing.T) {
 ### 发送GET请求
 ```go
 func TestGet(t *testing.T) {
-    r := requests.Request{
-        Method:  "get", 
-        Url:     "https://httpbin.org/get?name=张三&age=12"}
-    
-    resp := r.Send()
+    resp := Get("https://httpbin.org/get?name=张三&age=12")
     fmt.Printf("状态码: %d\n", resp.StatusCode)
     fmt.Printf("原因: %s\n", resp.Reason)
     fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
@@ -115,16 +111,7 @@ func TestGet(t *testing.T) {
 ### 发送GET 带单独Query参数请求
 ```go
 func TestGetWithParams(t *testing.T) {
-    r := requests.Request{
-        Method:  "GET",
-        Url:     "https://httpbin.org/get",
-        Params:  map[string]string{"name": "张三", "age": "12"},
-        Headers: map[string]string{"Cookie": "abc", "Token": "123"}}
-    
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+    resp := GetWithParams("https://httpbin.org/get", map[string]string{"name": "张三", "age": "12"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -133,16 +120,7 @@ func TestGetWithParams(t *testing.T) {
 ### 发送POST 表单请求 并携带自定义Headers
 ```go
 func TestPostForm(t *testing.T) {
-    r := requests.Request{
-        Method:  "POST",
-        Url:     "https://httpbin.org/post",
-        Data:    map[string]string{"name": "张三", "age": "12"},
-        Headers: map[string]string{"Cookie": "abc", "Token": "123"}}
-    
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+    resp := PostAsForm("https://httpbin.org/post", map[string]string{"name": "张三", "age": "12"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -151,32 +129,17 @@ func TestPostForm(t *testing.T) {
 ### 发送POST JSON请求
 ```go
 func TestPostJson(t *testing.T) {
-    r := Request{
-        Method:  "POST",
-        Url:     "https://httpbin.org/post",
-        Json:    `{"name": "张三", "age": "12"}`}
-    
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
-    fmt.Printf("响应文本: %s\n", resp.Text)
+    resp := PostAsJson("https://httpbin.org/post", `{"name": "张三", "age": "12"}`)
+	// JSON响应解析
+	fmt.Printf("姓名: %s\n", resp.Get("json.name"))
+    fmt.Printf("年龄: %s\n", resp.Get("json.age"))
 }
 ```
 
 ### 发送POST XML请求
 ```go
 func TestPostXML(t *testing.T) {
-    r := requests.Request{
-        Method:  "POST",
-        Url:     "https://httpbin.org/post",
-        Raw:    `<xml>hello</xml>`,
-        Headers: map[string]string{"Content-Type": "application/xml"}}
-    
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+    resp := PostAsRaw("https://httpbin.org/post", `<xml>hello</xml>`, "application/xml")
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -185,20 +148,9 @@ func TestPostXML(t *testing.T) {
 ### 发送multipart/form-data请求
 ```go
 func TestPostMultipartFormData(t *testing.T) {
-    r := requets.Request{
-        Method:  "POST",
-        Url:     "https://httpbin.org/post",
-        Data:    map[string]string{"name": "张三", "age": "12"},
-        Files:   map[string]string{"pic": "./testdata/logo.png"},
-    }
-    
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+    resp := PostAsMultipartForm("https://httpbin.org/post", map[string]string{"name": "张三", "age": "12"}, map[string]string{"pic": "./testdata/logo.png"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
-
 ```
 
 
@@ -324,6 +276,60 @@ func TestAsyncSendRequest(t *testing.T) {
 		resp := <- requests.Ch
 		fmt.Println(resp.StatusCode)
 	}
+}
+```
+### 响应解析-单个字段
+```go
+func TestParseJsonResponse(t *testing.T) {
+    r := Request{
+    Method: "get",
+    Url:    "https://httpbin.org/get?name=张三&age=12"}
+    resp := r.Send()
+    respJson := resp.Json()
+    //fmt.Println(resp.Text)
+    args := respJson["args"].(map[string]interface{})
+    name := args["name"].(string)
+    age := args["age"].(string)
+    fmt.Println(name, age)
+}
+```
+
+### 响应解析-转为结构体
+```go
+func TestParseJsonResponseToStruct(t *testing.T) {
+	type Args struct {
+		Name string `json:"name"`
+		Age  string `json:"age"`
+	}
+
+	type Headers struct {
+		Accept_Encoding string `json:"Accept-Encoding"`
+		Host            string `json:"Host"`
+		User_Agent      string `json:"User-Agent"`
+		X_Amzn_Trace_Id string `json:"X-Amzn-Trace-Id"`
+	}
+
+	type MyResponse struct {
+		Args    Args    `json:"args"`
+		Headers Headers `json:"headers"`
+		Origin  string  `json:"origin"`
+		Url     string  `json:"url"`
+	}
+
+	r := Request{
+		Method: "get",
+		Url:    "https://httpbin.org/get?name=张三&age=12"}
+	resp := r.Send()
+	fmt.Println(resp.Text)
+	//
+	var respObj MyResponse
+	err := json.Unmarshal(resp.Content, &respObj)
+	if err != nil {
+		fmt.Println("JSON反序列化失败")
+	}
+	name := respObj.Args.Name
+	age := respObj.Args.Age
+	fmt.Println(name, age)
 }
 ```
 

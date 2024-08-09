@@ -8,7 +8,6 @@ import (
 	"golang.org/x/net/http2"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -67,7 +66,10 @@ func (req *Request) SetParams(params map[string]string) *Request {
 }
 
 func (req *Request) SetHeaders(headers map[string]string) *Request {
-	req.Headers = headers
+	if req.Headers == nil {
+		req.Headers = headers
+	}
+	updateMap(req.Headers, headers)
 	return req
 }
 
@@ -81,12 +83,8 @@ func (req *Request) SetFormData(data map[string]string) *Request {
 	return req
 }
 
-func (req *Request) SetJsonData(data map[string]interface{}) *Request {
-	jsonStr, err := json.Marshal(data)
-	if err != nil {
-		log.Fatalf("JSON序列化失败: %s", err)
-	}
-	req.Json = string(jsonStr)
+func (req *Request) SetJsonData(json string) *Request {
+	req.Json = json
 	return req
 }
 
@@ -131,12 +129,12 @@ func (req *Request) EnableHttp2(enable bool) *Request {
 }
 
 func (req *Request) SetContentType(contentType string) *Request {
-	req.Headers["Content-Type"] = contentType
+	req.SetHeaders(map[string]string{"Content-Type": contentType})
 	return req
 }
 
 func (req *Request) SetBearerToken(token string) *Request {
-	req.Headers["Authorization"] = fmt.Sprintf("Bearer %s", token)
+	req.SetHeaders(map[string]string{"Authorization": fmt.Sprintf("Bearer %s", token)})
 	return req
 }
 

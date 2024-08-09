@@ -6,7 +6,7 @@ import (
 )
 
 // 发送GET 请求
-func TestGet(t *testing.T) {
+func TestRequestGet(t *testing.T) {
 	r := Request{
 		Method: "get",
 		Url:    "https://httpbin.org/get?name=张三&age=12"}
@@ -18,7 +18,7 @@ func TestGet(t *testing.T) {
 }
 
 // 发送GET 带单独Query参数请求
-func TestGetWithParams(t *testing.T) {
+func TestRequestGetWithParams(t *testing.T) {
 	r := Request{
 		Method:  "GET",
 		Url:     "https://httpbin.org/get",
@@ -32,7 +32,7 @@ func TestGetWithParams(t *testing.T) {
 }
 
 // 发送POST 表单请求 带自定义Headers
-func TestPostForm(t *testing.T) {
+func TestRequestPostForm(t *testing.T) {
 	r := Request{
 		Method:  "POST",
 		Url:     "https://httpbin.org/post",
@@ -46,7 +46,7 @@ func TestPostForm(t *testing.T) {
 }
 
 // 发送POST JSON请求
-func TestPostJson(t *testing.T) {
+func TestRequestPostJson(t *testing.T) {
 	r := Request{
 		Method: "POST",
 		Url:    "https://httpbin.org/post",
@@ -59,7 +59,7 @@ func TestPostJson(t *testing.T) {
 }
 
 // 发送POST XML请求
-func TestPostXML(t *testing.T) {
+func TestRequestPostXML(t *testing.T) {
 	r := Request{
 		Method:  "POST",
 		Url:     "https://httpbin.org/post",
@@ -73,7 +73,7 @@ func TestPostXML(t *testing.T) {
 }
 
 // 测试MultipartFormData
-func TestPostMultipartFormData(t *testing.T) {
+func TestRequestPostMultipartFormData(t *testing.T) {
 	r := Request{
 		Method: "POST",
 		Url:    "https://httpbin.org/post",
@@ -187,7 +187,7 @@ func TestBuildRequest(t *testing.T) {
 	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 
-func TestLoginAndLogout(t *testing.T) {
+func TestRequestWithPrevResponseCookies(t *testing.T) {
 	r := Request{
 		Method: "POST",
 		Url:    "http://127.0.0.1:5000/api/user/login/",
@@ -211,5 +211,4 @@ func TestLoginAndLogout(t *testing.T) {
 	fmt.Printf("原因: %s\n", resp2.Reason)
 	fmt.Printf("响应时间: %f秒\n", resp2.Elapsed)
 	fmt.Printf("响应文本: %s\n", resp2.Text)
-
 }

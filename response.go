@@ -3,11 +3,10 @@ package requests
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/tidwall/gjson"
 )
 
-// 请求配置
-
-// 响应结构体
+// Response 响应结构体
 type Response struct {
 	StatusCode int               `json:"status_code"` // 状态码
 	Reason     string            `json:"reason"`      // 状态码说明
@@ -35,4 +34,12 @@ func (res *Response) JsonArray() []map[string]interface{} {
 		fmt.Println("响应文本转map失败")
 	}
 	return data
+}
+
+func (res *Response) Get(path string) gjson.Result {
+	return gjson.Get(res.Text, path)
+}
+
+func (res *Response) GetMany(path string) []gjson.Result {
+	return gjson.GetMany(res.Text, path)
 }

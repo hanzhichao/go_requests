@@ -16,16 +16,24 @@ func NewSession(config *Config) *Session {
 
 func (s *Session) SendRequest(req *Request) *Response {
 	if s.cookies != nil {
-		req.Cookies = s.cookies // TODO Merge cookies
+		updateMap(req.Cookies, s.cookies)
 	}
 	resp := req.Send()
 	if resp.Cookies != nil {
-		s.cookies = resp.Cookies // TODO Merge cookies
+		updateMap(s.cookies, resp.Cookies)
+		//s.cookies = resp.Cookies // TODO Merge cookies
 	}
 	return resp
 }
 
-func (s *Session) Get(url string, params map[string]string) *Response {
+func (s *Session) Get(url string) *Response {
+	req := NewRequestWithConfig(s.Config).
+		SetMethod("GET").
+		SetUrl(url)
+	return s.SendRequest(req)
+}
+
+func (s *Session) GetWithParams(url string, params map[string]string) *Response {
 	req := NewRequestWithConfig(s.Config).
 		SetMethod("GET").
 		SetUrl(url).
@@ -41,10 +49,28 @@ func (s *Session) PostAsForm(url string, data map[string]string) *Response {
 	return s.SendRequest(req)
 }
 
-func (s *Session) PostAsJson(method, url string, data map[string]interface{}) *Response {
+func (s *Session) PostAsMultipartForm(url string, data map[string]string, files map[string]string) *Response {
 	req := NewRequestWithConfig(s.Config).
-		SetMethod(method).
+		SetMethod("POST").
 		SetUrl(url).
-		SetJsonData(data)
+		SetFormData(data).
+		SetUploadFiles(files)
+	return s.SendRequest(req)
+}
+
+func (s *Session) PostAsJson(url string, json string) *Response {
+	req := NewRequestWithConfig(s.Config).
+		SetMethod("POST").
+		SetUrl(url).
+		SetJsonData(json)
+	return req.Send()
+}
+
+func (s *Session) PostAsRaw(url, raw, contentType string) *Response {
+	req := NewRequestWithConfig(s.Config).
+		SetMethod("POST").
+		SetUrl(url).
+		SetRawData(raw).
+		SetContentType(contentType)
 	return req.Send()
 }

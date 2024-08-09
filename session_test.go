@@ -15,7 +15,7 @@ func TestKeepCookies(t *testing.T) {
 	fmt.Printf("响应文本: %s\n", resp.Text)
 	fmt.Printf("响应Cookies: %s\n", resp.Cookies)
 
-	resp2 := s.Get("http://127.0.0.1:5000/api/user/logout/", map[string]string{"name": "张三"})
+	resp2 := s.GetWithParams("http://127.0.0.1:5000/api/user/logout/", map[string]string{"name": "张三"})
 
 	fmt.Printf("状态码: %d\n", resp2.StatusCode)
 	fmt.Printf("原因: %s\n", resp2.Reason)
