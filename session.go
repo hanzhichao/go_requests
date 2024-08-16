@@ -1,10 +1,5 @@
 package requests
 
-const (
-	ContentTypeFormUrlEncoded = iota
-	ContentTypeApplicationJson
-)
-
 type Session struct {
 	Config  *Config `json:"config"` // 请求配置
 	cookies map[string]string
@@ -26,51 +21,64 @@ func (s *Session) SendRequest(req *Request) *Response {
 	return resp
 }
 
-func (s *Session) Get(url string) *Response {
-	req := NewRequestWithConfig(s.Config).
-		SetMethod("GET").
-		SetUrl(url)
+func (s *Session) Get(url string, headers map[string]string) *Response {
+	req := NewRequestWithConfig(s.Config, "GET", url).
+		SetHeaders(headers)
 	return s.SendRequest(req)
 }
 
-func (s *Session) GetWithParams(url string, params map[string]string) *Response {
-	req := NewRequestWithConfig(s.Config).
-		SetMethod("GET").
-		SetUrl(url).
-		SetParams(params)
-	return s.SendRequest(req)
-}
-
-func (s *Session) PostAsForm(url string, data map[string]string) *Response {
-	req := NewRequestWithConfig(s.Config).
-		SetMethod("POST").
-		SetUrl(url).
-		SetFormData(data)
-	return s.SendRequest(req)
-}
-
-func (s *Session) PostAsMultipartForm(url string, data map[string]string, files map[string]string) *Response {
-	req := NewRequestWithConfig(s.Config).
-		SetMethod("POST").
-		SetUrl(url).
-		SetFormData(data).
-		SetUploadFiles(files)
-	return s.SendRequest(req)
-}
-
-func (s *Session) PostAsJson(url string, json string) *Response {
-	req := NewRequestWithConfig(s.Config).
-		SetMethod("POST").
-		SetUrl(url).
-		SetJsonData(json)
+func (s *Session) Post(url, data string, headers map[string]string) *Response {
+	req := NewRequestWithConfig(s.Config, "POST", url).
+		SetRawData(data).
+		SetHeaders(headers)
 	return req.Send()
 }
 
-func (s *Session) PostAsRaw(url, raw, contentType string) *Response {
-	req := NewRequestWithConfig(s.Config).
-		SetMethod("POST").
-		SetUrl(url).
-		SetRawData(raw).
-		SetContentType(contentType)
+func (s *Session) Put(url, data string, headers map[string]string) *Response {
+	req := NewRequestWithConfig(s.Config, "Put", url).
+		SetRawData(data).
+		SetHeaders(headers)
 	return req.Send()
+}
+
+func (s *Session) Delete(url string, headers map[string]string) *Response {
+	req := NewRequestWithConfig(s.Config, "DELETE", url).
+		SetHeaders(headers)
+	return s.SendRequest(req)
+}
+
+func (s *Session) Head(url string, headers map[string]string) *Response {
+	req := NewRequestWithConfig(s.Config, "HEAD", url).
+		SetHeaders(headers)
+	return s.SendRequest(req)
+}
+
+func (s *Session) Options(url string, headers map[string]string) *Response {
+	req := NewRequestWithConfig(s.Config, "OPTIONS", url).
+		SetHeaders(headers)
+	return s.SendRequest(req)
+}
+
+func Get(url string, headers map[string]string) *Response {
+	return NewSession(nil).Get(url, headers)
+}
+
+func Post(url, data string, headers map[string]string) *Response {
+	return NewSession(nil).Post(url, data, headers)
+}
+
+func Put(url, data string, headers map[string]string) *Response {
+	return NewSession(nil).Post(url, data, headers)
+}
+
+func Delete(url string, headers map[string]string) *Response {
+	return NewSession(nil).Get(url, headers)
+}
+
+func Head(url string, headers map[string]string) *Response {
+	return NewSession(nil).Head(url, headers)
+}
+
+func Options(url string, headers map[string]string) *Response {
+	return NewSession(nil).Options(url, headers)
 }

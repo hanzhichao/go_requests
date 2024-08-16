@@ -175,9 +175,7 @@ func TestAsyncSendRequest(t *testing.T) {
 }
 
 func TestBuildRequest(t *testing.T) {
-	r := NewRequest().
-		SetMethod("get").
-		SetUrl("https://httpbin.org/get").
+	r := NewRequest("GET", "https://httpbin.org/get").
 		SetParams(map[string]string{"name": "张三", "age": "12"}).
 		SetTimeout(3000)
 	resp := r.Send()

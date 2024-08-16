@@ -42,22 +42,12 @@ type Request struct {
 	HTTP2       bool              `json:"http_2"`          // 是否启用HTTP2，默认不启用，受Config影响
 }
 
-func NewRequest() *Request {
-	return &Request{}
+func NewRequest(method, url string) *Request {
+	return &Request{Method: method, Url: url}
 }
 
-func NewRequestWithConfig(config *Config) *Request {
-	return &Request{Config: config}
-}
-
-func (req *Request) SetMethod(method string) *Request {
-	req.Method = method
-	return req
-}
-
-func (req *Request) SetUrl(url string) *Request {
-	req.Url = url
-	return req
+func NewRequestWithConfig(config *Config, method, url string) *Request {
+	return &Request{Config: config, Method: method, Url: url}
 }
 
 func (req *Request) SetParams(params map[string]string) *Request {

@@ -120,7 +120,7 @@ func TestGetWithParams(t *testing.T) {
 ### 发送POST 表单请求 并携带自定义Headers
 ```go
 func TestPostForm(t *testing.T) {
-    resp := PostAsForm("https://httpbin.org/post", map[string]string{"name": "张三", "age": "12"})
+    resp := PostAsForm("https://httpbin.org/post", "name=张三&&age=12", map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -129,7 +129,7 @@ func TestPostForm(t *testing.T) {
 ### 发送POST JSON请求
 ```go
 func TestPostJson(t *testing.T) {
-    resp := PostAsJson("https://httpbin.org/post", `{"name": "张三", "age": "12"}`)
+    resp := Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`, map[string]string{"Content-Type": "application/json"})
 	// JSON响应解析
 	fmt.Printf("姓名: %s\n", resp.Get("json.name"))
     fmt.Printf("年龄: %s\n", resp.Get("json.age"))
@@ -139,7 +139,7 @@ func TestPostJson(t *testing.T) {
 ### 发送POST XML请求
 ```go
 func TestPostXML(t *testing.T) {
-    resp := PostAsRaw("https://httpbin.org/post", `<xml>hello</xml>`, "application/xml")
+    resp := Post("https://httpbin.org/post", `<xml>hello</xml>`,  map[string]string{"Content-Type": "application/xml"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -148,7 +148,12 @@ func TestPostXML(t *testing.T) {
 ### 发送multipart/form-data请求
 ```go
 func TestPostMultipartFormData(t *testing.T) {
-    resp := PostAsMultipartForm("https://httpbin.org/post", map[string]string{"name": "张三", "age": "12"}, map[string]string{"pic": "./testdata/logo.png"})
+    r := requests.Request{
+        Method: "POST",
+        Url: "https://httpbin.org/get",
+		data: map[string]string{"name": "张三", "age": "12"}
+        files:  map[string]string{"pic": "./testdata/logo.png"}}
+    resp := r.send()
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
