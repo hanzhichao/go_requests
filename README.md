@@ -80,23 +80,6 @@ type Config struct {
 ## 使用示例
 > 需要`import "github.com/hanzhichao/requests"`
 
-### 默认请求方法
-> Method可以省略，有数据时默认请求方法为POST，否则默认请方法为GET
-
-```go
-// 默认请求方法
-func TestRequestWithDefaultMethod(t *testing.T) {
-    // 发送GET请求
-    r := requests.Request{Url: "https://httpbin.org/get"}
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-
-    // 发送POST请求
-    r = requests.Request{Url: "https://httpbin.org/post", Data: map[string]string{"name": "Kevin"}}
-    resp = r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-}
-```
 
 ### 发送GET请求
 ```go
