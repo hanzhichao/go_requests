@@ -112,7 +112,8 @@ import (
 )
 
 func TestPostForm(t *testing.T) {
-    resp := go_requests.Post("https://httpbin.org/post", "name=张三&&age=12", map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
+    resp := go_requests.Post("https://httpbin.org/post", "name=张三&&age=12", 
+		map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -129,7 +130,8 @@ import (
 )
 
 func TestPostJson(t *testing.T) {
-    resp := go_requests.Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`, map[string]string{"Content-Type": "application/json"})
+    resp := go_requests.Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`, 
+		map[string]string{"Content-Type": "application/json"})
 	// JSON响应解析
 	fmt.Printf("姓名: %s\n", resp.Get("json.name"))
     fmt.Printf("年龄: %s\n", resp.Get("json.age"))
@@ -147,7 +149,8 @@ import (
 )
 
 func TestPostXML(t *testing.T) {
-    resp := go_requests.Post("https://httpbin.org/post", `<xml>hello</xml>`,  map[string]string{"Content-Type": "application/xml"})
+    resp := go_requests.Post("https://httpbin.org/post", `<xml>hello</xml>`,  
+		map[string]string{"Content-Type": "application/xml"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
