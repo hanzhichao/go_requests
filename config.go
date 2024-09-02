@@ -1,4 +1,4 @@
-package requests
+package go_requests
 
 // Config 请求配置
 type Config struct {

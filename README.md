@@ -18,7 +18,7 @@ Golang版人性化HTTP请求库，灵感来自Python版requests库
 
 ## 安装方法
 ```shell
-$ go get -u "github.com/hanzhichao/requests"
+$ go get -u "github.com/hanzhichao/go_requests"
 ```
 
 ## 结构模型
@@ -78,23 +78,24 @@ type Config struct {
 
 
 ## 使用示例
-> 需要`import "github.com/hanzhichao/requests"`
+> 需要`import "github.com/hanzhichao/go_requests"`
 
 
 ### 发送GET请求
 ```go
+package xxx
+
+import (
+	"fmt"
+	"testing"
+	"github.com/hanzhichao/go_requests"
+)
+
 func TestGet(t *testing.T) {
-    resp := Get("https://httpbin.org/get?name=张三&age=12")
+    resp := go_requests.Get("https://httpbin.org/get?name=张三&age=12", nil)
     fmt.Printf("状态码: %d\n", resp.StatusCode)
     fmt.Printf("原因: %s\n", resp.Reason)
     fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
-    fmt.Printf("响应文本: %s\n", resp.Text)
-}
-```
-### 发送GET 带单独Query参数请求
-```go
-func TestGetWithParams(t *testing.T) {
-    resp := GetWithParams("https://httpbin.org/get", map[string]string{"name": "张三", "age": "12"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -102,8 +103,16 @@ func TestGetWithParams(t *testing.T) {
 
 ### 发送POST 表单请求 并携带自定义Headers
 ```go
+package xxx
+
+import (
+	"fmt"
+	"testing"
+	"github.com/hanzhichao/go_requests"
+)
+
 func TestPostForm(t *testing.T) {
-    resp := PostAsForm("https://httpbin.org/post", "name=张三&&age=12", map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
+    resp := go_requests.Post("https://httpbin.org/post", "name=张三&&age=12", map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -111,8 +120,16 @@ func TestPostForm(t *testing.T) {
 
 ### 发送POST JSON请求
 ```go
+package xxx
+
+import (
+	"fmt"
+	"testing"
+	"github.com/hanzhichao/go_requests"
+)
+
 func TestPostJson(t *testing.T) {
-    resp := Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`, map[string]string{"Content-Type": "application/json"})
+    resp := go_requests.Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`, map[string]string{"Content-Type": "application/json"})
 	// JSON响应解析
 	fmt.Printf("姓名: %s\n", resp.Get("json.name"))
     fmt.Printf("年龄: %s\n", resp.Get("json.age"))
@@ -121,93 +138,146 @@ func TestPostJson(t *testing.T) {
 
 ### 发送POST XML请求
 ```go
+package xxx
+
+import (
+	"fmt"
+	"testing"
+	"github.com/hanzhichao/go_requests"
+)
+
 func TestPostXML(t *testing.T) {
-    resp := Post("https://httpbin.org/post", `<xml>hello</xml>`,  map[string]string{"Content-Type": "application/xml"})
+    resp := go_requests.Post("https://httpbin.org/post", `<xml>hello</xml>`,  map[string]string{"Content-Type": "application/xml"})
     fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
 
 
 ### 发送multipart/form-data请求
+
 ```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 func TestPostMultipartFormData(t *testing.T) {
-    r := requests.Request{
-        Method: "POST",
-        Url: "https://httpbin.org/get",
-		data: map[string]string{"name": "张三", "age": "12"}
-        files:  map[string]string{"pic": "./testdata/logo.png"}}
-    resp := r.send()
-    fmt.Printf("响应文本: %s\n", resp.Text)
+	r := go_requests.Request{
+		Method: "POST",
+		Url:    "https://httpbin.org/get",
+		data:   map[string]string{"name": "张三", "age": "12"},
+		files:  map[string]string{"pic": "./testdata/logo.png"}}
+	resp := r.send()
+	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
 
 
 ## 发送BasicAuth请求
+
 ```go
-func TestRequestWithAuth(t *testing.T){
-    r := requests.Request{
-        Method: "GET",
-        Url: "https://httpbin.org/get",
-        Auth: []string{"Kevin", "123456"},
-    }
-    
-    resp := r.Send()
-    fmt.Printf("响应文本：%s\n", resp.Text)
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
+func TestRequestWithAuth(t *testing.T) {
+	r := go_requests.Request{
+		Method: "GET",
+		Url:    "https://httpbin.org/get",
+		Auth:   []string{"Kevin", "123456"},
+	}
+
+	resp := r.Send()
+	fmt.Printf("响应文本：%s\n", resp.Text)
 }
 
 ```
 
 
 ## 发送禁止重定向请求并获取响应Cookies
+
 ```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 func TestNotAllowRedirests(t *testing.T) {
-    r := requests.Request{
-        Method: "POST",
-        Url: "https://newecshop.longtest.cn/admin/privilege.php",
-        Data: map[string]string{
-                "username": "***",
-                "password": "***",
-                "act":      "signin"},
-        NoRedirects: true,
-    }
-    
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    for key, value := range(resp.Cookies){
-    fmt.Printf("响应Cookies项：%s=%s\n", key, value)
-    }
+	r := go_requests.Request{
+		Method: "POST",
+		Url:    "https://newecshop.longtest.cn/admin/privilege.php",
+		Data: map[string]string{
+			"username": "***",
+			"password": "***",
+			"act":      "signin"},
+		NoRedirects: true,
+	}
+
+	resp := r.Send()
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+	for key, value := range (resp.Cookies) {
+		fmt.Printf("响应Cookies项：%s=%s\n", key, value)
+	}
 }
 ```
 
 ### 请求超时时间设置
+
 ```go
-func TestRequestTimeout(t *testing.T){
-    r := requests.Request{
-        Method: "get",
-        Url: "https://httpbin.org/get",
-        Timeout: 1, // 毫秒
-    }
-    
-    r.Send()
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
+func TestRequestTimeout(t *testing.T) {
+	r := go_requests.Request{
+		Method:  "get",
+		Url:     "https://httpbin.org/get",
+		Timeout: 1, // 毫秒
+	}
+
+	r.Send()
 }
 
 ```
 
 ### 使用请求默认配置
-```go
-func TestRequestConfig(t *testing.T){
-    requests.GlobalConfig.BaseUrl = "https://httpbin.org"
-    requests.GlobalConfig.Params = map[string]string{"Token": "abc"}
-    requests.GlobalConfig.Headers = map[string]string{"Test": "123"}
-    requests.GlobalConfig.Cookies = map[string]string{"sid": "hhh"}
-    requests.GlobalConfig.Timeout = 10000 // 10秒
 
-    r := requests.Request{
-        Method: "get",
-        Url: "/get",
-    }
-    resp := r.Send()
-    fmt.Printf("响应文本：%s\n", resp.Text)
+```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
+func TestRequestConfig(t *testing.T) {
+	go_requests.GlobalConfig.BaseUrl = "https://httpbin.org"
+	go_requests.GlobalConfig.Params = map[string]string{"Token": "abc"}
+	go_requests.GlobalConfig.Headers = map[string]string{"Test": "123"}
+	go_requests.GlobalConfig.Cookies = map[string]string{"sid": "hhh"}
+	go_requests.GlobalConfig.Timeout = 10000 // 10秒
+
+	r := go_requests.Request{
+		Method: "get",
+		Url:    "/get",
+	}
+	resp := r.Send()
+	fmt.Printf("响应文本：%s\n", resp.Text)
 }
 
 ```
@@ -223,67 +293,120 @@ func TestRequestConfig(t *testing.T){
 ```
 > 注意：data中的value值如`age`必须是string类型，不然会反序列化失败
 
-
 ```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 func TestRequestFromJsonFile(t *testing.T) {
-    r := requets.GetRequestFromJsonFile("./testdata/data.json")
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
-    fmt.Printf("响应文本: %s\n", resp.Text)
+	r := go_requests.GetRequestFromJsonFile("./testdata/data.json")
+	resp := r.Send()
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+	fmt.Printf("原因: %s\n", resp.Reason)
+	fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
 
 ### 发送HTTP2请求
+
 ```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 // 使用HTTP2及关闭TLS验证
-func TestRequestWithHttp2(t *testing.T){  // todo 换其他方式验证
-    r := requests.Request{Url: "https://stackoverflow.com", HTTP2: true, NoVerify: true}
-    resp := r.Send()
-    fmt.Printf("响应头: %v\n", resp.Headers)
+func TestRequestWithHttp2(t *testing.T) { // todo 换其他方式验证
+	r := go_requests.Request{Url: "https://stackoverflow.com", HTTP2: true, NoVerify: true}
+	resp := r.Send()
+	fmt.Printf("响应头: %v\n", resp.Headers)
 }
 ```
 > 可以通过调试在原始http.Resposne对象res.Proto属性中查看到请求协议为HTTP/2.0
 
 ### 使用HTTP代理
+
 ```go
-func TestRequestWithProxy(t *testing.T){  // todo 换其他方式验证
-    r := requests.Request{Url: "https://httpbin.org/get", Proxy: "http://localhost:8888", NoVerify: true}
-    resp := r.Send()
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
+func TestRequestWithProxy(t *testing.T) { // todo 换其他方式验证
+	r := go_requests.Request{Url: "https://httpbin.org/get", Proxy: "http://localhost:8888", NoVerify: true}
+	resp := r.Send()
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
 }
 ```
 ### 使用异步请求
+
 ```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 // 异步发送请求
 func TestAsyncSendRequest(t *testing.T) {
-	r := requests.Request{Url: "https://www.baidu.com"}
+	r := go_requests.Request{Url: "https://www.baidu.com"}
 	for i := 0; i < 10; i++ {
 		r.AsyncSend()
-		resp := <- requests.Ch
+		resp := <-requests.Ch
 		fmt.Println(resp.StatusCode)
 	}
 }
 ```
 ### 响应解析-单个字段
+
 ```go
+package xxx
+
+import (
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 func TestParseJsonResponse(t *testing.T) {
-    r := Request{
-    Method: "get",
-    Url:    "https://httpbin.org/get?name=张三&age=12"}
-    resp := r.Send()
-    respJson := resp.Json()
-    //fmt.Println(resp.Text)
-    args := respJson["args"].(map[string]interface{})
-    name := args["name"].(string)
-    age := args["age"].(string)
-    fmt.Println(name, age)
+	r := go_requests.Request{
+		Method: "get",
+		Url:    "https://httpbin.org/get?name=张三&age=12"}
+	resp := r.Send()
+	respJson := resp.Json()
+	//fmt.Println(resp.Text)
+	args := respJson["args"].(map[string]interface{})
+	name := args["name"].(string)
+	age := args["age"].(string)
+	fmt.Println(name, age)
 }
 ```
 
 ### 响应解析-转为结构体
+
 ```go
+package xxx
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/hanzhichao/go_requests"
+	"testing"
+)
+
 func TestParseJsonResponseToStruct(t *testing.T) {
 	type Args struct {
 		Name string `json:"name"`
@@ -304,7 +427,7 @@ func TestParseJsonResponseToStruct(t *testing.T) {
 		Url     string  `json:"url"`
 	}
 
-	r := Request{
+	r := go_requests.Request{
 		Method: "get",
 		Url:    "https://httpbin.org/get?name=张三&age=12"}
 	resp := r.Send()

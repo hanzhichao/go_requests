@@ -1,4 +1,4 @@
-package requests
+package go_requests
 
 type Session struct {
 	Config  *Config `json:"config"` // 请求配置
