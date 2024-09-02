@@ -1,4 +1,4 @@
-# requests
+# go_requests
 Golang版人性化HTTP请求库，灵感来自Python版requests库
 
 ## 特性
