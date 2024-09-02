@@ -82,76 +82,80 @@ type Config struct {
 
 
 ### 发送GET请求
+
 ```go
 package xxx
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hanzhichao/go_requests"
+	"testing"
 )
 
 func TestGet(t *testing.T) {
-    resp := go_requests.Get("https://httpbin.org/get?name=张三&age=12", nil)
-    fmt.Printf("状态码: %d\n", resp.StatusCode)
-    fmt.Printf("原因: %s\n", resp.Reason)
-    fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
-    fmt.Printf("响应文本: %s\n", resp.Text)
+	resp := go_requests.Get("https://httpbin.org/get?name=张三&age=12", nil)
+	fmt.Printf("状态码: %d\n", resp.StatusCode)
+	fmt.Printf("原因: %s\n", resp.Reason)
+	fmt.Printf("响应时间: %f秒\n", resp.Elapsed)
+	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
 
 
 ### 发送POST 表单请求 并携带自定义Headers
+
 ```go
 package xxx
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hanzhichao/go_requests"
+	"testing"
 )
 
 func TestPostForm(t *testing.T) {
-    resp := go_requests.Post("https://httpbin.org/post", "name=张三&&age=12", 
+	resp := go_requests.Post("https://httpbin.org/post", "name=张三&age=12",
 		map[string]string{"Content-Type": "application/x-www-form-urlencoded"})
-    fmt.Printf("响应文本: %s\n", resp.Text)
+	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
 
 
 ### 发送POST JSON请求
+
 ```go
 package xxx
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hanzhichao/go_requests"
+	"testing"
 )
 
 func TestPostJson(t *testing.T) {
-    resp := go_requests.Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`, 
+	resp := go_requests.Post("https://httpbin.org/post", `{"name": "张三", "age": "12"}`,
 		map[string]string{"Content-Type": "application/json"})
 	// JSON响应解析
 	fmt.Printf("姓名: %s\n", resp.Get("json.name"))
-    fmt.Printf("年龄: %s\n", resp.Get("json.age"))
+	fmt.Printf("年龄: %s\n", resp.Get("json.age"))
 }
 ```
 
 ### 发送POST XML请求
+
 ```go
 package xxx
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hanzhichao/go_requests"
+	"testing"
 )
 
 func TestPostXML(t *testing.T) {
-    resp := go_requests.Post("https://httpbin.org/post", `<xml>hello</xml>`,  
+	resp := go_requests.Post("https://httpbin.org/post", `<xml>hello</xml>`,
 		map[string]string{"Content-Type": "application/xml"})
-    fmt.Printf("响应文本: %s\n", resp.Text)
+	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
 
@@ -171,9 +175,9 @@ func TestPostMultipartFormData(t *testing.T) {
 	r := go_requests.Request{
 		Method: "POST",
 		Url:    "https://httpbin.org/get",
-		data:   map[string]string{"name": "张三", "age": "12"},
-		files:  map[string]string{"pic": "./testdata/logo.png"}}
-	resp := r.send()
+		Data:   map[string]string{"name": "张三", "age": "12"},
+		Files:  map[string]string{"pic": "./testdata/logo.png"}}
+	resp := r.Send()
 	fmt.Printf("响应文本: %s\n", resp.Text)
 }
 ```
@@ -201,37 +205,6 @@ func TestRequestWithAuth(t *testing.T) {
 	fmt.Printf("响应文本：%s\n", resp.Text)
 }
 
-```
-
-
-## 发送禁止重定向请求并获取响应Cookies
-
-```go
-package xxx
-
-import (
-	"fmt"
-	"github.com/hanzhichao/go_requests"
-	"testing"
-)
-
-func TestNotAllowRedirests(t *testing.T) {
-	r := go_requests.Request{
-		Method: "POST",
-		Url:    "https://newecshop.longtest.cn/admin/privilege.php",
-		Data: map[string]string{
-			"username": "***",
-			"password": "***",
-			"act":      "signin"},
-		NoRedirects: true,
-	}
-
-	resp := r.Send()
-	fmt.Printf("状态码: %d\n", resp.StatusCode)
-	for key, value := range (resp.Cookies) {
-		fmt.Printf("响应Cookies项：%s=%s\n", key, value)
-	}
-}
 ```
 
 ### 请求超时时间设置
@@ -368,7 +341,7 @@ func TestAsyncSendRequest(t *testing.T) {
 	r := go_requests.Request{Url: "https://www.baidu.com"}
 	for i := 0; i < 10; i++ {
 		r.AsyncSend()
-		resp := <-requests.Ch
+		resp := <-go_requests.Ch
 		fmt.Println(resp.StatusCode)
 	}
 }
